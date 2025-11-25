@@ -25,7 +25,7 @@ def setup_chinese_font():
     try:
         # 0. 强制清理字体缓存 (针对 Streamlit Cloud)
         # 这一步非常关键，防止 matplotlib 使用旧的缓存
-        cache_dir = fm.get_cachedir()
+        cache_dir = matplotlib.get_cachedir()
         if os.path.exists(cache_dir):
             shutil.rmtree(cache_dir)
             
