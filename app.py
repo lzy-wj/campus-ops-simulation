@@ -31,7 +31,7 @@ def setup_chinese_font():
             return
         
         # 方案2：常见系统字体
-        font_list = ['Noto Sans CJK SC', 'SimHei', 'Microsoft YaHei', 'PingFang SC', 'Heiti TC']
+        font_list = ['WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', 'Noto Sans CJK SC', 'SimHei', 'Microsoft YaHei', 'PingFang SC', 'Heiti TC']
         available_fonts = [f.name for f in fm.fontManager.ttflist]
         for font in font_list:
             if font in available_fonts:
