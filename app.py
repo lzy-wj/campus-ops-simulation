@@ -22,28 +22,53 @@ st.set_page_config(
 def setup_chinese_font():
     """配置中文字体，确保在不同环境下中文显示正常"""
     try:
-        # 方案1：项目内字体
-        font_path = os.path.join(os.path.dirname(__file__), 'fonts', 'SourceHanSansCN-Regular.otf')
-        if os.path.exists(font_path):
-            fm.fontManager.addfont(font_path)
-            plt.rcParams['font.sans-serif'] = ['Source Han Sans CN', 'sans-serif']
+        # 0. 强制清理字体缓存 (针对 Streamlit Cloud)
+        # 这一步非常关键，防止 matplotlib 使用旧的缓存
+        cache_dir = fm.get_cachedir()
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+            
+        # 1. 尝试加载文泉驿字体 (Linux/Streamlit Cloud 首选)
+        # 直接指定字体名称，不依赖自动扫描
+        os_fonts = ['WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', 'Noto Sans CJK SC']
+        
+        # 检查系统字体列表
+        system_fonts = {f.name for f in fm.fontManager.ttflist}
+        
+        found_font = None
+        for font_name in os_fonts:
+            if font_name in system_fonts:
+                found_font = font_name
+                break
+                
+        # 如果没找到，尝试重建字体管理器
+        if not found_font:
+            fm._load_fontmanager(try_read_cache=False)
+            system_fonts = {f.name for f in fm.fontManager.ttflist}
+            for font_name in os_fonts:
+                if font_name in system_fonts:
+                    found_font = font_name
+                    break
+        
+        if found_font:
+            plt.rcParams['font.sans-serif'] = [found_font]
+            plt.rcParams['font.family'] = ['sans-serif']
             plt.rcParams['axes.unicode_minus'] = False
             return
-        
-        # 方案2：常见系统字体
-        font_list = ['WenQuanYi Zen Hei', 'WenQuanYi Micro Hei', 'Noto Sans CJK SC', 'SimHei', 'Microsoft YaHei', 'PingFang SC', 'Heiti TC']
-        available_fonts = [f.name for f in fm.fontManager.ttflist]
-        for font in font_list:
-            if font in available_fonts:
+
+        # 2. 本地开发环境回退
+        local_fonts = ['SimHei', 'Microsoft YaHei', 'PingFang SC', 'Heiti TC']
+        for font in local_fonts:
+            if font in system_fonts:
                 plt.rcParams['font.sans-serif'] = [font]
                 plt.rcParams['axes.unicode_minus'] = False
                 return
         
-        # 方案3：后备方案
+        # 3. 最后的保底
         plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
         plt.rcParams['axes.unicode_minus'] = False
     except Exception as e:
-        st.warning(f"字体加载遇到问题: {e}")
+        st.warning(f"字体配置异常: {e}")
 
 plt.style.use('seaborn-v0_8-whitegrid')
 setup_chinese_font()
